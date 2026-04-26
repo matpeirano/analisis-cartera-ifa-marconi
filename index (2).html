@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Panel de Clientes — IFA</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script defer src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <link rel="stylesheet" href="styles.css" />
+  <script defer src="app.js"></script>
+</head>
+<body>
+  <div class="layout">
+
+    <aside class="sidebar">
+      <div class="sidebar-logo">
+        <div class="logo-mark">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+            <path d="M2 16L8 4L14 12L17 8L20 16H2Z" fill="currentColor" opacity="0.9"/>
+          </svg>
+        </div>
+        <span class="logo-text">IFA Panel</span>
+      </div>
+      <nav class="sidebar-nav">
+        <button class="nav-item active" data-view="dashboard">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1" y="1" width="6" height="6" rx="1.5" fill="currentColor"/><rect x="9" y="1" width="6" height="6" rx="1.5" fill="currentColor" opacity="0.5"/><rect x="1" y="9" width="6" height="6" rx="1.5" fill="currentColor" opacity="0.5"/><rect x="9" y="9" width="6" height="6" rx="1.5" fill="currentColor"/></svg>
+          Dashboard
+        </button>
+        <button class="nav-item" data-view="liquidez">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2C8 2 3 7 3 10.5C3 13 5.24 15 8 15C10.76 15 13 13 13 10.5C13 7 8 2 8 2Z" fill="currentColor" opacity="0.8"/></svg>
+          Liquidez
+        </button>
+        <button class="nav-item" data-view="aum">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 12L6 7L9 10L12 5L14 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Top AUM
+        </button>
+        <button class="nav-item" data-view="inactivos">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M8 5V8.5L10 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          Inactivos
+        </button>
+        <button class="nav-item" data-view="comparacion">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 8H14M2 8L5 5M2 8L5 11M14 8L11 5M14 8L11 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Comparación
+        </button>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="file-status">
+          <div class="status-dot" id="dotActual"></div>
+          <span id="labelActual">Sin datos</span>
+        </div>
+        <div class="file-status">
+          <div class="status-dot" id="dotAnterior"></div>
+          <span id="labelAnterior">Sin comparación</span>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div class="topbar-left">
+          <h1 id="viewTitle">Dashboard</h1>
+          <span class="view-subtitle" id="viewSubtitle">Visión general del portfolio</span>
+        </div>
+        <div class="topbar-actions">
+          <label class="btn btn-primary">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1V9M7 9L4 6M7 9L10 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 11H12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            Cargar Excel actual
+            <input id="fileActual" type="file" accept=".xlsx,.xls,.csv" hidden />
+          </label>
+          <label class="btn btn-ghost">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1V9M7 9L4 6M7 9L10 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 11H12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            Anterior
+            <input id="fileAnterior" type="file" accept=".xlsx,.xls,.csv" hidden />
+          </label>
+          <button id="btnExportPdf" class="btn btn-ghost icon-only" title="Exportar PDF">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="2" y="1" width="10" height="12" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M4 5H10M4 7.5H8M4 10H7" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+          </button>
+        </div>
+      </header>
+
+      <div class="filters-bar">
+        <div class="filter-group">
+          <label class="filter-label">Jurídica</label>
+          <select id="filtroJuridica" class="filter-select">
+            <option value="TODAS">Todas</option>
+            <option value="1">Jurídicas</option>
+            <option value="0">No jurídicas</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">Arancel</label>
+          <select id="filtroArancel" class="filter-select">
+            <option value="TODOS">Todos</option>
+          </select>
+        </div>
+        <div class="filter-group search-group">
+          <label class="filter-label">Buscar</label>
+          <div class="search-wrap">
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="5.5" cy="5.5" r="4" stroke="currentColor" stroke-width="1.3"/><path d="M9 9L11.5 11.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+            <input id="filtroCliente" type="text" class="filter-input search-input" placeholder="Comitente o cuenta..." />
+          </div>
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">Top N</label>
+          <select id="filtroTopN" class="filter-select">
+            <option value="10">10</option>
+            <option value="15" selected>15</option>
+            <option value="20">20</option>
+            <option value="30">30</option>
+            <option value="50">50</option>
+          </select>
+        </div>
+        <div class="filter-group" style="margin-left:auto;">
+          <span class="record-count" id="recordCount">0 registros</span>
+        </div>
+      </div>
+
+      <div id="emptyState" class="empty-state">
+        <div class="empty-icon">
+          <svg width="48" height="48" viewBox="0 0 48 48" fill="none"><path d="M8 40L18 16L28 30L34 20L40 40H8Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><circle cx="36" cy="10" r="4" stroke="currentColor" stroke-width="1.5"/></svg>
+        </div>
+        <p class="empty-title">Cargá tu Excel para comenzar</p>
+        <p class="empty-sub">El archivo debe contener las columnas: comitente, cuenta, AUM en Dolares, Comision 180, entre otras.</p>
+      </div>
+
+      <div id="dashboardContent" class="hidden">
+
+        <section id="viewDashboard" class="view-section">
+          <div class="kpi-grid">
+            <div class="kpi-card">
+              <span class="kpi-label">Clientes totales</span>
+              <span class="kpi-value mono" id="kpiClientes">-</span>
+              <div class="kpi-sub"><span id="kpiJuridicas">-</span> jurídicas · <span id="kpiNoJuridicas">-</span> personas</div>
+            </div>
+            <div class="kpi-card accent-blue">
+              <span class="kpi-label">AUM total</span>
+              <span class="kpi-value mono" id="kpiAum">-</span>
+              <div class="kpi-sub delta" id="kpiDeltaAum">-</div>
+            </div>
+            <div class="kpi-card accent-teal">
+              <span class="kpi-label">Liquidez total</span>
+              <span class="kpi-value mono" id="kpiLiquidez">-</span>
+              <div class="kpi-sub">expresada en USD</div>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-label">Comisión 180</span>
+              <span class="kpi-value mono" id="kpiComision">-</span>
+              <div class="kpi-sub">USD cobrado</div>
+            </div>
+            <div class="kpi-card accent-amber">
+              <span class="kpi-label">ROA anualizado</span>
+              <span class="kpi-value mono" id="kpiRoa">-</span>
+              <div class="kpi-sub">Benchmark 1,5% anual</div>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-label">Benchmark anual</span>
+              <span class="kpi-value mono" id="kpiBenchmarkAnual">-</span>
+              <div class="kpi-sub">objetivo de cartera</div>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-label">Benchmark mensual</span>
+              <span class="kpi-value mono" id="kpiBenchmarkMensual">-</span>
+              <div class="kpi-sub">benchmark / 12</div>
+            </div>
+            <div class="kpi-card accent-red">
+              <span class="kpi-label">Clientes inactivos</span>
+              <span class="kpi-value mono" id="kpiInactivos">-</span>
+              <div class="kpi-sub">comisión &lt; USD 15</div>
+            </div>
+          </div>
+
+          <div class="roa-bar-section">
+            <div class="section-head">
+              <h2>Distribución ROA</h2>
+              <span class="section-note">Clientes por nivel de rentabilidad</span>
+            </div>
+            <div class="roa-bands" id="roaBands">
+              <div class="roa-band">
+                <div class="band-bar-wrap"><div class="band-bar red" id="barRojo" style="width:0%"></div></div>
+                <span class="band-label">Bajo &lt;1.1%</span>
+                <span class="band-count mono" id="cntRojo">0</span>
+              </div>
+              <div class="roa-band">
+                <div class="band-bar-wrap"><div class="band-bar amber" id="barAmbar" style="width:0%"></div></div>
+                <span class="band-label">Medio 1.1–1.3%</span>
+                <span class="band-count mono" id="cntAmbar">0</span>
+              </div>
+              <div class="roa-band">
+                <div class="band-bar-wrap"><div class="band-bar green" id="barVerde" style="width:0%"></div></div>
+                <span class="band-label">Objetivo 1.3–2%</span>
+                <span class="band-count mono" id="cntVerde">0</span>
+              </div>
+              <div class="roa-band">
+                <div class="band-bar-wrap"><div class="band-bar blue" id="barAlto" style="width:0%"></div></div>
+                <span class="band-label">Alto &gt;2%</span>
+                <span class="band-count mono" id="cntAlto">0</span>
+              </div>
+              <div class="roa-band">
+                <div class="band-bar-wrap"><div class="band-bar neutral" id="barSinDato" style="width:0%"></div></div>
+                <span class="band-label">Sin dato</span>
+                <span class="band-count mono" id="cntSinDato">0</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="viewLiquidez" class="view-section hidden">
+          <div class="table-card">
+            <div class="section-head">
+              <h2>Clientes con mayor liquidez</h2>
+              <span class="section-note">USD: cv7000 + pesos/MEP + MEP operable</span>
+            </div>
+            <div class="table-wrap">
+              <table id="tablaLiquidez">
+                <thead>
+                  <tr>
+                    <th class="col-rank">#</th>
+                    <th>Comitente</th>
+                    <th>Cuenta</th>
+                    <th>Arancel</th>
+                    <th class="num">cv7000</th>
+                    <th class="num">$ CI / MEP</th>
+                    <th class="num">MEP CI</th>
+                    <th class="num">TC MEP</th>
+                    <th class="num">Liquidez total</th>
+                    <th class="num">Comisión 180</th>
+                    <th class="num">ROA</th>
+                    <th class="num">Benchmark mens.</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section id="viewAum" class="view-section hidden">
+          <div class="table-card">
+            <div class="section-head">
+              <h2>Top AUM</h2>
+              <span class="section-note">Principales clientes por activos bajo gestión</span>
+            </div>
+            <div class="table-wrap">
+              <table id="tablaTopAum">
+                <thead>
+                  <tr>
+                    <th class="col-rank">#</th>
+                    <th>Comitente</th>
+                    <th>Cuenta</th>
+                    <th>Jurídica</th>
+                    <th>Arancel</th>
+                    <th class="num">AUM USD</th>
+                    <th class="num">ROA</th>
+                    <th class="num">Benchmark mens.</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section id="viewInactivos" class="view-section hidden">
+          <div class="table-card">
+            <div class="section-head">
+              <h2>Clientes inactivos</h2>
+              <span class="section-note">Comisión 180 menor a USD 15 · oportunidades de recuperación</span>
+            </div>
+            <div class="table-wrap">
+              <table id="tablaInactivos">
+                <thead>
+                  <tr>
+                    <th class="col-rank">#</th>
+                    <th>Comitente</th>
+                    <th>Cuenta</th>
+                    <th>Jurídica</th>
+                    <th>Arancel</th>
+                    <th class="num">AUM USD</th>
+                    <th class="num">Comisión 180</th>
+                    <th class="num">Liquidez total</th>
+                    <th class="num">ROA</th>
+                    <th class="num">Benchmark mens.</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section id="viewComparacion" class="view-section hidden">
+          <div id="comparacionEmpty" class="inline-empty">
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><path d="M4 16H28M4 16L10 10M4 16L10 22M28 16L22 10M28 16L22 22" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <p>Cargá un Excel anterior para ver la comparación de AUM</p>
+          </div>
+          <div id="comparacionContent" class="hidden">
+            <div class="kpi-mini-row">
+              <div class="kpi-mini">
+                <span>Δ AUM total</span>
+                <strong id="kpiDeltaAumComp">-</strong>
+              </div>
+              <div class="kpi-mini">
+                <span>Δ AUM %</span>
+                <strong id="kpiDeltaPct">-</strong>
+              </div>
+            </div>
+            <div class="table-card">
+              <div class="section-head">
+                <h2>Variación de AUM por cliente</h2>
+                <span class="section-note">Cruce por comitente · ordenado por mayor crecimiento</span>
+              </div>
+              <div class="table-wrap">
+                <table id="tablaComparacion">
+                  <thead>
+                    <tr>
+                      <th class="col-rank">#</th>
+                      <th>Comitente</th>
+                      <th>Cuenta</th>
+                      <th class="num">AUM anterior</th>
+                      <th class="num">AUM actual</th>
+                      <th class="num">Diferencia</th>
+                      <th class="num">Variación %</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <div class="toast hidden" id="toast"></div>
+</body>
+</html>
