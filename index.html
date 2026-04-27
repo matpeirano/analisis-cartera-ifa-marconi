@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Panel IFA</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script defer src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <link rel="stylesheet" href="styles.css" />
+  <script defer src="app.js"></script>
+</head>
+<body>
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-mark">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <path d="M2 15L7 5L12 11L15 7L18 15H2Z" fill="currentColor"/>
+        </svg>
+      </div>
+      <span class="logo-text">IFA Panel</span>
+    </div>
+
+    <nav class="sidebar-nav">
+      <button class="nav-item active" data-view="dashboard">
+        <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><rect x="1" y="1" width="5.5" height="5.5" rx="1.2" fill="currentColor"/><rect x="8.5" y="1" width="5.5" height="5.5" rx="1.2" fill="currentColor" opacity="0.45"/><rect x="1" y="8.5" width="5.5" height="5.5" rx="1.2" fill="currentColor" opacity="0.45"/><rect x="8.5" y="8.5" width="5.5" height="5.5" rx="1.2" fill="currentColor"/></svg>
+        Dashboard
+      </button>
+      <button class="nav-item" data-view="alertas">
+        <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M7.5 1.5C7.5 1.5 3 5.5 3 9C3 11.5 5 13.5 7.5 13.5C10 13.5 12 11.5 12 9C12 5.5 7.5 1.5 7.5 1.5Z" stroke="currentColor" stroke-width="1.3"/><path d="M7.5 7V9.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="7.5" cy="11" r="0.75" fill="currentColor"/></svg>
+        Alertas
+        <span class="badge" id="badgeAlertas">0</span>
+      </button>
+      <button class="nav-item" data-view="objetivos">
+        <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><circle cx="7.5" cy="7.5" r="6" stroke="currentColor" stroke-width="1.3"/><circle cx="7.5" cy="7.5" r="3" stroke="currentColor" stroke-width="1.3"/><circle cx="7.5" cy="7.5" r="1" fill="currentColor"/></svg>
+        Objetivos
+      </button>
+      <button class="nav-item" data-view="potencial">
+        <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M2 11L5.5 6.5L8.5 9L11 5.5L13 8" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/><path d="M11 5.5H13V7.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Potencial
+      </button>
+      <button class="nav-item" data-view="liquidez">
+        <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M7.5 2C7.5 2 3 6 3 9.5C3 11.9 5.02 14 7.5 14C9.98 14 12 11.9 12 9.5C12 6 7.5 2 7.5 2Z" fill="currentColor" opacity="0.7"/></svg>
+        Liquidez
+      </button>
+      <button class="nav-item" data-view="aum">
+        <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><rect x="1" y="9" width="2.5" height="5" rx="0.8" fill="currentColor"/><rect x="5" y="6" width="2.5" height="8" rx="0.8" fill="currentColor" opacity="0.7"/><rect x="9" y="3" width="2.5" height="11" rx="0.8" fill="currentColor" opacity="0.5"/><rect x="13" y="1" width="2.5" height="13" rx="0.8" fill="currentColor" opacity="0.35"/></svg>
+        Top AUM
+      </button>
+      <button class="nav-item" data-view="inactivos">
+        <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><circle cx="7.5" cy="7.5" r="5.5" stroke="currentColor" stroke-width="1.3"/><path d="M7.5 4.5V8L9.5 9.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+        Inactivos
+      </button>
+      <button class="nav-item" data-view="historico">
+        <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M2 12L4.5 7L7.5 10L10 6.5L13 9.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 2V13H13" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+        Histórico
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="file-status-row">
+        <div class="status-dot" id="dotActual"></div>
+        <span id="labelActual" class="status-label">Sin datos cargados</span>
+      </div>
+      <label class="load-btn-small">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1V7M6 7L4 5M6 7L8 5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 10H10" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+        Cargar Excel actual
+        <input id="fileActual" type="file" accept=".xlsx,.xls,.csv" hidden />
+      </label>
+      <label class="load-btn-small secondary" title="Cargá los Excel del más antiguo al más reciente">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6H10M2 6L4 4M2 6L4 8" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Agregar al histórico
+        <input id="fileHistorico" type="file" accept=".xlsx,.xls,.csv" hidden />
+      </label>
+      <button class="load-btn-small danger" id="btnClearHistorico">
+        Limpiar histórico
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <header class="topbar">
+      <div>
+        <h1 id="viewTitle">Dashboard</h1>
+        <span class="view-sub" id="viewSubtitle">Visión general del portfolio</span>
+      </div>
+      <div class="topbar-right">
+        <div class="filter-pill">
+          <select id="filtroJuridica" class="pill-select">
+            <option value="TODAS">Todas las cuentas</option>
+            <option value="1">Solo jurídicas</option>
+            <option value="0">Solo personas</option>
+          </select>
+        </div>
+        <div class="filter-pill">
+          <select id="filtroArancel" class="pill-select">
+            <option value="TODOS">Todos los aranceles</option>
+          </select>
+        </div>
+        <div class="search-pill">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="5.5" cy="5.5" r="4" stroke="currentColor" stroke-width="1.3"/><path d="M9 9L11.5 11.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+          <input id="filtroCliente" type="text" placeholder="Buscar..." />
+        </div>
+        <div class="filter-pill">
+          <select id="filtroTopN" class="pill-select">
+            <option value="10">Top 10</option>
+            <option value="15" selected>Top 15</option>
+            <option value="20">Top 20</option>
+            <option value="30">Top 30</option>
+            <option value="50">Top 50</option>
+          </select>
+        </div>
+        <button id="btnExportPdf" class="icon-btn" title="Imprimir / PDF">
+          <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><rect x="2" y="1" width="11" height="13" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M4.5 5H10.5M4.5 7.5H8.5M4.5 10H7" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- EMPTY STATE -->
+    <div id="emptyState" class="empty-state">
+      <div class="empty-icon">
+        <svg width="56" height="56" viewBox="0 0 56 56" fill="none"><path d="M8 44L18 18L30 32L38 20L48 44H8Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><circle cx="42" cy="11" r="5" stroke="currentColor" stroke-width="1.5"/></svg>
+      </div>
+      <p class="empty-title">Cargá tu Excel para comenzar</p>
+      <p class="empty-desc">Usá el botón del panel izquierdo. El archivo debe incluir las columnas estándar: comitente, cuenta, AUM en Dolares, Comision 180, etc.</p>
+      <label class="btn-primary-large">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2V10M8 10L5 7M8 10L11 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 13H13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Cargar Excel actual
+        <input type="file" accept=".xlsx,.xls,.csv" hidden id="fileActualEmpty"/>
+      </label>
+    </div>
+
+    <!-- CONTENT -->
+    <div id="appContent" class="hidden">
+
+      <!-- DASHBOARD -->
+      <section id="viewDashboard" class="view-section">
+        <div class="kpi-strip">
+          <div class="kpi-tile">
+            <span class="kpi-label">Clientes</span>
+            <span class="kpi-val mono" id="kpiClientes">-</span>
+            <div class="kpi-meta"><span id="kpiJurid">-</span> jur · <span id="kpiNoJurid">-</span> pers</div>
+          </div>
+          <div class="kpi-tile accent-b">
+            <span class="kpi-label">AUM total USD</span>
+            <span class="kpi-val mono" id="kpiAum">-</span>
+            <div class="kpi-meta" id="kpiDeltaAumDash">-</div>
+          </div>
+          <div class="kpi-tile accent-t">
+            <span class="kpi-label">Liquidez USD</span>
+            <span class="kpi-val mono" id="kpiLiquidez">-</span>
+            <div class="kpi-meta">disponible</div>
+          </div>
+          <div class="kpi-tile accent-g">
+            <span class="kpi-label">Comisión 180</span>
+            <span class="kpi-val mono" id="kpiComision">-</span>
+            <div class="kpi-meta">últimos 180 días</div>
+          </div>
+          <div class="kpi-tile accent-a">
+            <span class="kpi-label">ROA anualizado</span>
+            <span class="kpi-val mono" id="kpiRoa">-</span>
+            <div class="kpi-meta">benchmark 1,5%</div>
+          </div>
+          <div class="kpi-tile accent-r">
+            <span class="kpi-label">Inactivos</span>
+            <span class="kpi-val mono" id="kpiInactivos">-</span>
+            <div class="kpi-meta">comisión &lt; USD 15</div>
+          </div>
+          <div class="kpi-tile">
+            <span class="kpi-label">Benchmark anual</span>
+            <span class="kpi-val mono" id="kpiBenchAnual">-</span>
+            <div class="kpi-meta">objetivo cartera</div>
+          </div>
+          <div class="kpi-tile">
+            <span class="kpi-label">Benchmark mensual</span>
+            <span class="kpi-val mono" id="kpiBenchMens">-</span>
+            <div class="kpi-meta">benchmark / 12</div>
+          </div>
+        </div>
+
+        <div class="two-col">
+          <div class="panel-card">
+            <div class="panel-head">
+              <h2>Distribución ROA</h2>
+              <span class="panel-note">Clientes por banda de rentabilidad</span>
+            </div>
+            <div class="roa-bands" id="roaBands">
+              <div class="roa-row"><span class="roa-label">Alto &gt;2%</span><div class="bar-track"><div class="bar-fill c-blue" id="bAlto" style="width:0%"></div></div><span class="bar-count mono" id="nAlto">0</span></div>
+              <div class="roa-row"><span class="roa-label">Objetivo 1.3–2%</span><div class="bar-track"><div class="bar-fill c-green" id="bVerde" style="width:0%"></div></div><span class="bar-count mono" id="nVerde">0</span></div>
+              <div class="roa-row"><span class="roa-label">Medio 1.1–1.3%</span><div class="bar-track"><div class="bar-fill c-amber" id="bAmbar" style="width:0%"></div></div><span class="bar-count mono" id="nAmbar">0</span></div>
+              <div class="roa-row"><span class="roa-label">Bajo &lt;1.1%</span><div class="bar-track"><div class="bar-fill c-red" id="bRojo" style="width:0%"></div></div><span class="bar-count mono" id="nRojo">0</span></div>
+              <div class="roa-row"><span class="roa-label">Sin dato</span><div class="bar-track"><div class="bar-fill c-muted" id="bSinDato" style="width:0%"></div></div><span class="bar-count mono" id="nSinDato">0</span></div>
+            </div>
+          </div>
+          <div class="panel-card">
+            <div class="panel-head">
+              <h2>Potencial sin activar</h2>
+              <span class="panel-note">Facturación estimada alcanzable</span>
+            </div>
+            <div class="potencial-summary" id="potencialSummary">
+              <div class="pot-row">
+                <span>Clientes con score Alto</span>
+                <strong class="mono" id="potClientes">-</strong>
+              </div>
+              <div class="pot-row">
+                <span>AUM potencial</span>
+                <strong class="mono" id="potAum">-</strong>
+              </div>
+              <div class="pot-row highlight">
+                <span>Facturación potencial anual</span>
+                <strong class="mono green" id="potFact">-</strong>
+              </div>
+              <div class="pot-row highlight">
+                <span>Facturación potencial mensual</span>
+                <strong class="mono green" id="potFactMens">-</strong>
+              </div>
+              <p class="pot-note">Estimado llevando esos clientes a ROA 1,5% anual sobre su AUM actual</p>
+            </div>
+          </div>
+        </div>
+          <div class="three-col" style="padding:0 20px 20px;">
+            <div class="panel-card">
+              <div class="panel-head"><h2>Cartera por arancel</h2><span class="panel-note">AUM USD por tipo</span></div>
+              <div style="padding:14px 16px;" id="chartArancel"></div>
+            </div>
+            <div class="panel-card">
+              <div class="panel-head"><h2>Pirámide de clientes</h2><span class="panel-note">Cantidad por rango de AUM</span></div>
+              <div style="padding:14px 16px;" id="chartPiramida"></div>
+            </div>
+            <div class="panel-card" style="grid-column:1/-1;">
+              <div class="panel-head"><h2>AUM vs ROA por cliente</h2><span class="panel-note">Cada punto es un cliente · tamaño = AUM relativo · línea verde = benchmark 1,5%</span></div>
+              <div style="padding:14px 16px;overflow:auto;" id="chartScatter"></div>
+            </div>
+          </div>
+      </section>
+
+      <!-- ALERTAS -->
+      <section id="viewAlertas" class="view-section hidden">
+        <div id="alertasContainer" class="alertas-list"></div>
+      </section>
+
+      <!-- OBJETIVOS -->
+      <section id="viewObjetivos" class="view-section hidden">
+        <div class="objetivos-config panel-card" style="margin-bottom:16px;">
+          <div class="panel-head"><h2>Configurar metas</h2><span class="panel-note">Se guardan localmente</span></div>
+          <div class="obj-inputs">
+            <div class="obj-field">
+              <label>Meta facturación anual (USD)</label>
+              <input type="number" id="metaFact" placeholder="Ej: 50000" min="0" step="100"/>
+            </div>
+            <div class="obj-field">
+              <label>Meta AUM total (USD)</label>
+              <input type="number" id="metaAum" placeholder="Ej: 5000000" min="0" step="10000"/>
+            </div>
+            <button class="btn-save" id="btnSaveMetas">Guardar metas</button>
+          </div>
+        </div>
+
+        <div class="obj-grid">
+          <div class="panel-card obj-card">
+            <div class="panel-head"><h2>Facturación anualizada</h2></div>
+            <div class="obj-progress-wrap">
+              <div class="obj-numbers">
+                <div>
+                  <span class="obj-sub">Actual (comisión 180 × 2)</span>
+                  <strong class="obj-big mono" id="objFactActual">-</strong>
+                </div>
+                <div>
+                  <span class="obj-sub">Meta</span>
+                  <strong class="obj-big mono muted" id="objFactMeta">-</strong>
+                </div>
+              </div>
+              <div class="progress-track">
+                <div class="progress-fill" id="progFact" style="width:0%"></div>
+              </div>
+              <div class="obj-stats-row">
+                <div class="obj-stat"><span>Progreso</span><strong class="mono" id="objFactPct">-</strong></div>
+                <div class="obj-stat"><span>Faltante</span><strong class="mono red" id="objFactFalta">-</strong></div>
+                <div class="obj-stat"><span>Clientes activos para meta</span><strong class="mono" id="objClientesMeta">-</strong></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel-card obj-card">
+            <div class="panel-head"><h2>AUM bajo gestión</h2></div>
+            <div class="obj-progress-wrap">
+              <div class="obj-numbers">
+                <div>
+                  <span class="obj-sub">AUM actual</span>
+                  <strong class="obj-big mono" id="objAumActual">-</strong>
+                </div>
+                <div>
+                  <span class="obj-sub">Meta</span>
+                  <strong class="obj-big mono muted" id="objAumMeta">-</strong>
+                </div>
+              </div>
+              <div class="progress-track">
+                <div class="progress-fill accent-b" id="progAum" style="width:0%"></div>
+              </div>
+              <div class="obj-stats-row">
+                <div class="obj-stat"><span>Progreso</span><strong class="mono" id="objAumPct">-</strong></div>
+                <div class="obj-stat"><span>Faltante</span><strong class="mono red" id="objAumFalta">-</strong></div>
+                <div class="obj-stat"><span>Clientes activos</span><strong class="mono" id="objClientesActivos">-</strong></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel-card" style="margin-top:16px;">
+          <div class="panel-head"><h2>Insight de cierre</h2><span class="panel-note">Para llegar a las metas</span></div>
+          <div id="insightMetas" class="insight-list"></div>
+        </div>
+      </section>
+
+      <!-- POTENCIAL -->
+      <section id="viewPotencial" class="view-section hidden">
+        <div class="kpi-mini-row" style="margin-bottom:16px;">
+          <div class="kpi-mini-card">
+            <span>Clientes con potencial</span>
+            <strong class="mono" id="potTotalClientes">-</strong>
+          </div>
+          <div class="kpi-mini-card accent-g">
+            <span>AUM potencial total</span>
+            <strong class="mono" id="potTotalAum">-</strong>
+          </div>
+          <div class="kpi-mini-card accent-g">
+            <span>Facturación anual potencial</span>
+            <strong class="mono" id="potTotalFact">-</strong>
+          </div>
+          <div class="kpi-mini-card accent-g">
+            <span>Facturación mensual potencial</span>
+            <strong class="mono" id="potTotalFactMens">-</strong>
+          </div>
+        </div>
+        <div class="panel-card">
+          <div class="panel-head">
+            <h2>Ranking de oportunidades</h2>
+            <span class="panel-note">Score = AUM × (1,5% − ROA actual) / 100 · ordenado por facturación potencial</span>
+          </div>
+          <div class="table-wrap">
+            <table id="tablaPotencial">
+              <thead>
+                <tr>
+                  <th class="tc">#</th>
+                  <th>Comitente</th>
+                  <th>Cuenta</th>
+                  <th>Arancel</th>
+                  <th class="tr">AUM USD</th>
+                  <th class="tr">ROA actual</th>
+                  <th class="tr">ROA gap</th>
+                  <th class="tr">Fact. pot. anual</th>
+                  <th class="tr">Fact. pot. mensual</th>
+                  <th class="tr">Score</th>
+                  <th class="tc">Prioridad</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- LIQUIDEZ -->
+      <section id="viewLiquidez" class="view-section hidden">
+        <div class="panel-card">
+          <div class="panel-head"><h2>Clientes con mayor liquidez</h2><span class="panel-note">USD: cv7000 + pesos/MEP + MEP operable</span></div>
+          <div class="table-wrap">
+            <table id="tablaLiquidez">
+              <thead><tr>
+                <th class="tc">#</th><th>Comitente</th><th>Cuenta</th><th>Arancel</th>
+                <th class="tr">cv7000</th><th class="tr">$ CI/MEP</th><th class="tr">MEP CI</th><th class="tr">TC MEP</th>
+                <th class="tr">Liquidez total</th><th class="tr">Comisión 180</th><th class="tr">ROA</th><th class="tr">Bench. mens.</th>
+              </tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- TOP AUM -->
+      <section id="viewAum" class="view-section hidden">
+        <div class="panel-card">
+          <div class="panel-head"><h2>Top AUM</h2><span class="panel-note">Principales clientes por activos bajo gestión</span></div>
+          <div class="table-wrap">
+            <table id="tablaTopAum">
+              <thead><tr>
+                <th class="tc">#</th><th>Comitente</th><th>Cuenta</th><th>Jurídica</th><th>Arancel</th>
+                <th class="tr">AUM USD</th><th class="tr">ROA</th><th class="tr">Bench. mens.</th>
+              </tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- INACTIVOS -->
+      <section id="viewInactivos" class="view-section hidden">
+        <div class="panel-card">
+          <div class="panel-head"><h2>Clientes inactivos</h2><span class="panel-note">Comisión 180 menor a USD 15 · oportunidades de reactivación</span></div>
+          <div class="table-wrap">
+            <table id="tablaInactivos">
+              <thead><tr>
+                <th class="tc">#</th><th>Comitente</th><th>Cuenta</th><th>Jurídica</th><th>Arancel</th>
+                <th class="tr">AUM USD</th><th class="tr">Comisión 180</th><th class="tr">Liquidez</th><th class="tr">ROA</th><th class="tr">Bench. mens.</th>
+              </tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- HISTÓRICO -->
+      <section id="viewHistorico" class="view-section hidden">
+        <div class="historico-empty hidden" id="historicoEmpty">
+        <div style="padding:48px;text-align:center;color:var(--text3);font-size:13px;line-height:1.8">
+          <div style="font-size:28px;margin-bottom:12px">📂</div>
+          <p style="color:var(--text2);font-weight:500;margin-bottom:8px">Sin períodos cargados</p>
+          <p>Usá el botón <strong style="color:var(--text2)">"Agregar al histórico"</strong> del panel izquierdo.<br>
+          Cargá los Excel en orden cronológico: <strong style="color:var(--text2)">el más antiguo primero</strong>, el más reciente último.<br>
+          Cada archivo se numerará como Excel 1, Excel 2, etc.</p>
+        </div>
+        </div>
+        <div id="historicoContent" class="hidden">
+          <div class="kpi-mini-row" style="margin-bottom:16px;">
+            <div class="kpi-mini-card accent-b"><span>Períodos cargados</span><strong class="mono" id="histPeriodos">-</strong></div>
+            <div class="kpi-mini-card accent-b"><span>AUM inicial</span><strong class="mono" id="histAumInicial">-</strong></div>
+            <div class="kpi-mini-card accent-g"><span>AUM actual</span><strong class="mono" id="histAumActual">-</strong></div>
+            <div class="kpi-mini-card" id="histDeltaCard"><span>Variación total</span><strong class="mono" id="histDeltaTotal">-</strong></div>
+          </div>
+          <div class="panel-card" style="margin-bottom:16px;">
+            <div class="panel-head"><h2>Evolución AUM</h2><span class="panel-note">USD · por período cargado</span></div>
+            <div class="chart-area" id="chartAum"></div>
+          </div>
+          <div class="panel-card" style="margin-bottom:16px;">
+            <div class="panel-head"><h2>Evolución facturación (comisión 180)</h2><span class="panel-note">USD · por período</span></div>
+            <div class="chart-area" id="chartFact"></div>
+          </div>
+          <div class="panel-card">
+            <div class="panel-head"><h2>Evolución clientes activos</h2><span class="panel-note">Con comisión &gt; USD 15</span></div>
+            <div class="chart-area" id="chartActivos"></div>
+          </div>
+          <div class="panel-card" style="margin-top:16px;">
+            <div class="panel-head"><h2>Detalle por período</h2></div>
+            <div class="table-wrap">
+              <table id="tablaHistorico">
+                <thead><tr>
+                  <th>Período</th><th>Archivo</th>
+                  <th class="tr">Clientes</th><th class="tr">Activos</th>
+                  <th class="tr">AUM USD</th><th class="tr">Δ AUM</th><th class="tr">Δ%</th>
+                  <th class="tr">Comisión 180</th><th class="tr">ROA anualizado</th>
+                </tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div><!-- /appContent -->
+  </main>
+</div>
+
+<div class="toast hidden" id="toast"></div>
+</body>
+</html>
